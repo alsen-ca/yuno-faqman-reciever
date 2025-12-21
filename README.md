@@ -12,7 +12,7 @@ It ends up writing or reading the data to a MongoDB database.
     go build main.go
     ./main
 
-    curl -X POST http://127.0.0.1:3200/thema \
+    curl -X POST http://127.0.0.1:8221/thema \
      -H "Content-Type: application/json" \
      -d '{"title":"My First Thema"}'
 
