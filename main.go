@@ -1,22 +1,28 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
+
+	"yuno-faqman-reciever/internal/db"
+	httpHandlers "yuno-faqman-reciever/internal/http"
 )
-// Maybe import:
-// microservice.go
-// db.go
-// models/*/controller.go
 
 func main() {
-	controller_themas(http)
-	controller_tags(http)
-	controller_qas(http)
+	// Connect to Mongo
+	client, err := db.ConnectMongo("mongodb://127.0.0.1:8222")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	microservice()
-	connection()
-	// run_algorithm()
+	// Start router
+	mux := http.NewServeMux()
+	httpHandlers.RegisterThemaRoutes(mux, client)
+
+	// Start server
+	log.Println("Listening on :8221")
+	err = http.ListenAndServe(":8221", mux)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
