@@ -10,10 +10,11 @@ import (
 
 func main() {
 	// Connect to Mongo
-	client, err := db.ConnectMongo("mongodb://127.0.0.1:8222")
+	client, err := db.ConnectMongo("mongodb://faqman-db:27017")
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Println("Connection to database was successfull")
 
 	// Start router
 	mux := http.NewServeMux()
