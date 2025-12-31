@@ -1,40 +1,75 @@
 # Yuno FAQman reciever
-This applciation acts together with yuno-faqman, which acted as the frontend on a terminal.
+This application acts together with [yuno-faqman](https://github.com/alsen-ca/yuno-faqman), which is writtten to act as the frontend as a REPL.
 
 This acts as a microservice and recieves the http requests.
 
-It ends up writing or reading the data to a MongoDB database.
+It ends up writing or reading the data to/from a MongoDB database.
 
-# Running
+# HTTP examples
+Replace id={uuid} with the actual uuid, for example:
 
-    go run .
+    /thema?id=25bbe563-2a67-4cf3-86b4-e945c41814d7
 
-    curl -X POST http://127.0.0.1:8221/thema/new \
+## Create
+    curl -X POST http://127.0.0.1:8221/thema \
      -H "Content-Type: application/json" \
      -d '{"title":"go"}'
 
-    curl "http://127.0.0.1:8221/thema?id={uuid}"
+    curl -X POST http://127.0.0.1:8221/thema \
+     -H "Content-Type: application/json" \
+     -d '{"title":"rust"}'
 
-    curl "http://127.0.0.1:8221/thema?title=go"
+## Get
+### ID / UUID
+    curl http://127.0.0.1:8221/thema?id={uuid}
+
+### Title
+    curl http://127.0.0.1:8221/thema?title="go"
     
+### All
     curl http://127.0.0.1:8221/thema
 
+## Update
+    curl -X PUT http://127.0.0.1:8221/thema?id={uuid} \
+     -H "Content-Type: application/json" \
+     -d '{"title": "golang"}'
 
+    curl -X PUT http://127.0.0.1:8221/thema?title="golang" \
+     -H "Content-Type: application/json" \
+     -d '{"title": "Golang"}'
 
+## Delete
+    curl -X DELETE http://127.0.0.1:8221/thema?id={uuid}
+
+    curl -X DELETE http://127.0.0.1:8221/thema?title=rust
 
 
 # Images
-Code runs in Docker / Containerd. Before running, you can start them with these commands
+Code runs in Docker / Containerd. You can start them with the commands below.
+
+You can pull images
+
+    nerdctl pull golang:1.25.5-trixie
+    nerdctl pull mongo:8.2.3
+
+Or simply delete the '--pull never' line from the run commands.
+
+Note that this setup is, for now, intended for development only.
 
 ## Reciever (Go)
 Version 1.25.5-trixie
 
-nerdctl network create faqman
+First time starting the containers:
 
-go get go.mongodb.org/mongo-driver/mongo
+    nerdctl network create faqman
+
+Inside container the first time (Dependencies are saved on go-mod-cache volume):
+
+    go get go.mongodb.org/mongo-driver/mongo
 
 nerdctl run --rm \
     --init \
+    -it \
     --name faqman-reciever \
     --network faqman \
     -p 127.0.0.1:8221:8221 \
@@ -43,6 +78,10 @@ nerdctl run --rm \
     -v go-mod-cache:/go/pkg/mod \
     -w /app \
     golang:1.25.5-trixie \
+    bash
+
+Before starting app, be sure you have [Mongo running](#run-container)
+
     go run .
 
 ## Mongo
@@ -61,7 +100,7 @@ nerdctl run -d \
 
 ### Use mongosh
 
-nerdctl exec -it faqman-db mongosh
-show dbs
-use yuno-faqman
-db.themas.find()
+    nerdctl exec -it faqman-db mongosh
+    show dbs
+    use yuno-faqman
+    db.themas.find()
