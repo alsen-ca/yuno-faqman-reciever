@@ -1,0 +1,77 @@
+package thema
+
+import (
+    "encoding/json"
+    "net/http"
+    "errors"
+
+    "github.com/google/uuid"
+    "go.mongodb.org/mongo-driver/mongo"
+
+    "yuno-faqman-reciever/internal/domain"
+    "yuno-faqman-reciever/internal/service"
+)
+
+type TitlePayload struct {
+    Title string `json:"title"`
+}
+
+func decodeTitlePayload(r *http.Request) (TitlePayload, error) {
+    var payload TitlePayload
+
+    if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+        return payload, errors.New("invalid json")
+    }
+    if payload.Title == "" {
+        return payload, errors.New("title required")
+    }
+    return payload, nil
+}
+
+func mapWriteResult(w http.ResponseWriter, err error) {
+    switch err {
+    case nil:
+        w.WriteHeader(http.StatusNoContent)
+    case mongo.ErrNoDocuments:
+        http.Error(w, "not found", http.StatusNotFound)
+    case service.ErrDuplicateTitle:
+        http.Error(w, err.Error(), http.StatusConflict)
+    default:
+        http.Error(w, "internal error", http.StatusInternalServerError)
+    }
+}
+
+func resolveSelector(r *http.Request) (uuid.UUID, string, error) {
+    idStr := r.URL.Query().Get("id")
+    title := r.URL.Query().Get("title")
+
+    switch {
+    case idStr != "" && title != "":
+        return uuid.Nil, "", errors.New("only one of id or title allowed")
+
+    case idStr != "":
+        id, err := uuid.Parse(idStr)
+        if err != nil {
+            return uuid.Nil, "", errors.New("invalid uuid")
+        }
+        return id, "", nil
+
+    case title != "":
+        return uuid.Nil, title, nil
+
+    default:
+        return uuid.Nil, "", errors.New("missing id or title")
+    }
+}
+
+func respondSingle(w http.ResponseWriter, thema domain.Thema, err error) {
+    if err == mongo.ErrNoDocuments {
+        http.Error(w, "not found", http.StatusNotFound)
+        return
+    }
+    if err != nil {
+        http.Error(w, "internal error", http.StatusInternalServerError)
+        return
+    }
+    json.NewEncoder(w).Encode(thema)
+}

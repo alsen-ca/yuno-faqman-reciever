@@ -54,7 +54,7 @@ You can pull images
 
 Or simply delete the '--pull never' line from the run commands.
 
-Note that this setup is, for now, intended for development only.
+Note that this setup is, for now, intended for development use only.
 
 ## Reciever (Go)
 Version 1.25.5-trixie

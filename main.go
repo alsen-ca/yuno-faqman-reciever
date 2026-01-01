@@ -6,7 +6,7 @@ import (
 	"context"
 
 	"yuno-faqman-reciever/internal/db"
-	httpHandlers "yuno-faqman-reciever/internal/http"
+	"yuno-faqman-reciever/internal/http/thema"
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 
 	// Start router
 	mux := http.NewServeMux()
-	httpHandlers.RegisterThemaRoutes(mux, client)
+	thema.RegisterRoutes(mux, client)
 
 	// Start server
 	log.Println("Listening on :8221")
