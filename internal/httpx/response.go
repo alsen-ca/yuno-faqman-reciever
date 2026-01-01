@@ -1,15 +1,8 @@
-package thema
+package httpx
 
 import (
     "encoding/json"
     "net/http"
-    "errors"
-
-    "github.com/google/uuid"
-    "go.mongodb.org/mongo-driver/mongo"
-
-    "yuno-faqman-reciever/internal/domain"
-    "yuno-faqman-reciever/internal/service"
 )
 
 func WriteJSON(w http.ResponseWriter, status int, v any) {

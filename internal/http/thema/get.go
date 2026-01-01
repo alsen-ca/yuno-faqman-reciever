@@ -1,13 +1,13 @@
 package thema
 
 import (
-    "encoding/json"
     "net/http"
 
     "github.com/google/uuid"
     "go.mongodb.org/mongo-driver/mongo"
 
     "yuno-faqman-reciever/internal/service"
+    "yuno-faqman-reciever/internal/httpx"
 )
 
 func handleGet(w http.ResponseWriter, r *http.Request, client *mongo.Client) {
@@ -19,7 +19,7 @@ func handleGet(w http.ResponseWriter, r *http.Request, client *mongo.Client) {
     case idStr != "":
         id, err := uuid.Parse(idStr)
         if err != nil {
-            http.Error(w, "invalid uuid", http.StatusBadRequest)
+            httpx.WriteError(w, http.StatusBadRequest, "invalid uuid")
             return
         }
 
@@ -33,9 +33,9 @@ func handleGet(w http.ResponseWriter, r *http.Request, client *mongo.Client) {
     default:
         themas, err := service.ListThemas(ctx, client)
         if err != nil {
-            http.Error(w, "internal error", http.StatusInternalServerError)
+            httpx.WriteError(w, http.StatusInternalServerError, "internal error")
             return
         }
-        json.NewEncoder(w).Encode(themas)
+        httpx.WriteJSON(w, http.StatusOK, themas)
     }
 }

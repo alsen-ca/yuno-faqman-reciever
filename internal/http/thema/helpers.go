@@ -10,6 +10,7 @@ import (
 
     "yuno-faqman-reciever/internal/domain"
     "yuno-faqman-reciever/internal/service"
+    "yuno-faqman-reciever/internal/httpx"
 )
 
 type TitlePayload struct {
@@ -33,11 +34,11 @@ func mapWriteResult(w http.ResponseWriter, err error) {
     case nil:
         w.WriteHeader(http.StatusNoContent)
     case mongo.ErrNoDocuments:
-        http.Error(w, "not found", http.StatusNotFound)
+        httpx.WriteError(w, http.StatusNotFound, "not found")
     case service.ErrDuplicateTitle:
-        http.Error(w, err.Error(), http.StatusConflict)
+        httpx.WriteError(w, http.StatusConflict, err.Error())
     default:
-        http.Error(w, "internal error", http.StatusInternalServerError)
+        httpx.WriteError(w, http.StatusInternalServerError, "internal error")
     }
 }
 
@@ -66,11 +67,11 @@ func resolveSelector(r *http.Request) (uuid.UUID, string, error) {
 
 func respondSingle(w http.ResponseWriter, thema domain.Thema, err error) {
     if err == mongo.ErrNoDocuments {
-        http.Error(w, "not found", http.StatusNotFound)
+        httpx.WriteError(w, http.StatusNotFound, "not found")
         return
     }
     if err != nil {
-        http.Error(w, "internal error", http.StatusInternalServerError)
+        httpx.WriteError(w, http.StatusInternalServerError, "internal error")
         return
     }
     json.NewEncoder(w).Encode(thema)

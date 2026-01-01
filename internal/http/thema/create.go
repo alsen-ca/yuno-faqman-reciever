@@ -1,12 +1,12 @@
 package thema
 
 import (
-    "encoding/json"
     "net/http"
 
     "go.mongodb.org/mongo-driver/mongo"
 
     "yuno-faqman-reciever/internal/service"
+    "yuno-faqman-reciever/internal/httpx"
 )
 
 func handleCreate(w http.ResponseWriter, r *http.Request, client *mongo.Client) {
@@ -14,20 +14,19 @@ func handleCreate(w http.ResponseWriter, r *http.Request, client *mongo.Client) 
 
     payload, err := decodeTitlePayload(r)
     if err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
+        httpx.WriteError(w, http.StatusBadRequest, err.Error())
         return
     }
 
     thema, err := service.CreateThema(ctx, client, payload.Title)
     if err == service.ErrDuplicateTitle {
-        http.Error(w, err.Error(), http.StatusConflict)
+        httpx.WriteError(w, http.StatusConflict, err.Error())
         return
     }
     if err != nil {
-        http.Error(w, "internal error", http.StatusInternalServerError)
+        httpx.WriteError(w, http.StatusInternalServerError, "internal error")
         return
     }
 
-    w.WriteHeader(http.StatusCreated)
-    json.NewEncoder(w).Encode(thema)
+    httpx.WriteJSON(w, http.StatusCreated, thema)
 }

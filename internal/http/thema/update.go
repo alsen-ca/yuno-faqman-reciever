@@ -7,6 +7,7 @@ import (
     "go.mongodb.org/mongo-driver/mongo"
 
     "yuno-faqman-reciever/internal/service"
+    "yuno-faqman-reciever/internal/httpx"
 )
 
 func handleUpdate(w http.ResponseWriter, r *http.Request, client *mongo.Client) {
@@ -14,13 +15,13 @@ func handleUpdate(w http.ResponseWriter, r *http.Request, client *mongo.Client) 
 
     id, oldTitle, err := resolveSelector(r)
     if err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
+        httpx.WriteError(w, http.StatusBadRequest, err.Error())
         return
     }
 
     payload, err := decodeTitlePayload(r)
     if err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
+        httpx.WriteError(w, http.StatusBadRequest, err.Error())
         return
     }
 
