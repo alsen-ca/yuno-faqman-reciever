@@ -104,3 +104,13 @@ nerdctl run -d \
     show dbs
     use yuno-faqman
     db.themas.find()
+
+## Testing
+Tests need refinement.
+For now, one can:
+
+    go test ./test/...
+
+Or when debugging:
+
+    go test -v ./test/...

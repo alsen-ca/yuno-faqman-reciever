@@ -8,8 +8,8 @@ import (
     "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const (
-    databaseName   = "faqman"
+var (
+    DatabaseName   = "faqman"
     themaCollection = "themas"
 )
 
@@ -32,5 +32,5 @@ func ConnectMongo(uri string) (*mongo.Client, error) {
 }
 
 func ThemaCollection(client *mongo.Client) *mongo.Collection {
-    return client.Database(databaseName).Collection(themaCollection)
+    return client.Database(DatabaseName).Collection(themaCollection)
 }
