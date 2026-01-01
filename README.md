@@ -34,14 +34,14 @@ Replace id={uuid} with the actual uuid, for example:
      -H "Content-Type: application/json" \
      -d '{"title": "golang"}'
 
-    curl -X PUT http://127.0.0.1:8221/thema?title="golang" \
+    curl -X PUT http://127.0.0.1:8221/thema?title="rust" \
      -H "Content-Type: application/json" \
-     -d '{"title": "Golang"}'
+     -d '{"title": "Rust"}'
 
 ## Delete
     curl -X DELETE http://127.0.0.1:8221/thema?id={uuid}
 
-    curl -X DELETE http://127.0.0.1:8221/thema?title=rust
+    curl -X DELETE http://127.0.0.1:8221/thema?title=Rust
 
 
 # Images

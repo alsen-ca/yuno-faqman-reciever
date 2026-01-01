@@ -7,6 +7,7 @@ import (
 
 	"yuno-faqman-reciever/internal/db"
 	"yuno-faqman-reciever/internal/http/thema"
+	"yuno-faqman-reciever/internal/middleware"
 )
 
 func main() {
@@ -30,9 +31,7 @@ func main() {
 	thema.RegisterRoutes(mux, client)
 
 	// Start server
+	handler := middleware.Logging(mux)
 	log.Println("Listening on :8221")
-	err = http.ListenAndServe(":8221", mux)
-	if err != nil {
-		log.Fatal(err)
-	}
+	log.Fatal(http.ListenAndServe(":8221", handler))
 }
