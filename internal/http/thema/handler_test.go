@@ -1,0 +1,136 @@
+package thema
+
+import (
+    "testing"
+    "net/http"
+
+    "yuno-faqman-reciever/internal/testutil"
+)
+
+func TestCreateThema(t *testing.T) {
+    client, _ := testutil.TestMongoClient(t)
+    handler := testutil.SetupTestServer(func(mux *http.ServeMux) {
+        RegisterRoutes(mux, client)
+    })
+
+    themaCode, thema := testutil.CreateThemaHTTP(t, handler, "my Thema")
+    _, thema2 := testutil.CreateThemaHTTP(t, handler, "second Thema")
+
+    if thema.Title != "my Thema" {
+        t.Fatalf("unexpected title: %s", thema.Title)
+    }
+    if themaCode != http.StatusCreated {
+        t.Fatalf("unexpected code for creation: %d", themaCode)
+    }
+    if thema2.Title != "second Thema" {
+        t.Fatalf("unexpected title: %s", thema.Title)
+    }
+    if thema.Title == thema2.Title {
+        t.Fatalf("Themas have the same title")
+    }
+}
+
+func TestGetThema(t *testing.T) {
+    client, _ := testutil.TestMongoClient(t)
+    handler := testutil.SetupTestServer(func(mux *http.ServeMux) {
+        RegisterRoutes(mux, client)
+    })
+
+    themaCode, themaDomain := testutil.CreateThemaHTTP(t, handler, "Test Thema")
+
+    if themaDomain.Title != "Test Thema" {
+        t.Fatalf("unexpected title: %s", themaDomain.Title)
+    } else if themaCode != http.StatusCreated {
+        t.Fatalf("unexpected code for creation: %d", themaCode)
+    }
+
+    code, thema := testutil.GetThema(t, handler, testutil.ByID(themaDomain.ID))
+
+    if code != http.StatusOK {
+        t.Fatalf("unexpected code for GET: %d", code)
+    }
+    if thema.Title != themaDomain.Title {
+        t.Fatalf("Title from GET was not the same as creation title: %s", thema.Title)
+    }
+
+    code2, thema2 := testutil.GetThema(t, handler, testutil.ByTitle(themaDomain.Title))
+
+    if code2 != http.StatusOK {
+        t.Fatalf("unexpected code for GETL %d", code2)
+    }
+    if thema2.Title != thema.Title {
+        t.Fatalf("Titles of the same thema do not match: %s", thema2.Title)
+    }
+}
+
+func TestModifyThema(t *testing.T) {
+    client, _ := testutil.TestMongoClient(t)
+    handler := testutil.SetupTestServer(func(mux *http.ServeMux) {
+        RegisterRoutes(mux, client)
+    })
+    _, themaDomain := testutil.CreateThemaHTTP(t, handler, "Test Thema")
+    if themaDomain.Title != "Test Thema" {
+        t.Fatalf("unexpected title: %s", themaDomain.Title)
+    }
+
+    codeGet, themaGet := testutil.GetThema(t, handler, testutil.ByTitle(themaDomain.Title))
+    if codeGet != http.StatusOK {
+        t.Fatalf("unexpected code for GET: %d", codeGet)
+    }
+    if themaGet.Title != "Test Thema" {
+        t.Fatalf("Titles of the same thema do not match: %s", themaGet.Title)
+    }
+
+    codeUpdate := testutil.UpdateThema(t, handler, testutil.ByTitle(themaDomain.Title), "Changed Title")
+    if codeUpdate != http.StatusNoContent {
+        t.Fatalf("unexpected code for GET, should be 204    : %d", codeUpdate)
+    }
+
+    codeGetNew, _ := testutil.GetThema(t, handler, testutil.ByTitle("Test Thema"))
+    if codeGetNew == http.StatusOK {
+        t.Fatalf("GET request should not have been valid: %d", codeGetNew)
+    }
+
+    codeGetNew2, themaGetNew2 := testutil.GetThema(t, handler, testutil.ByID(themaDomain.ID))
+    if codeGetNew2 != http.StatusOK {
+        t.Fatalf("Unexpected code for GET: %d", codeGetNew2)
+    }
+    if themaGetNew2.Title != "Changed Title" {
+        t.Fatalf("Unexpected title for GET: %s", themaGetNew2.Title)
+    }
+
+    codeGetNew3, themaGetNew3 := testutil.GetThema(t, handler, testutil.ByTitle("Changed Title"))
+    if codeGetNew3 != http.StatusOK {
+        t.Fatalf("Unexpected code for GET: %d", codeGetNew3)
+    }
+    if themaGetNew3.Title != "Changed Title" {
+        t.Fatalf("Unexpected title for GET: %s", themaGetNew3.Title)
+    }
+}
+
+func TestDeleteThema(t *testing.T) {
+    client, _ := testutil.TestMongoClient(t)
+    handler := testutil.SetupTestServer(func(mux *http.ServeMux) {
+        RegisterRoutes(mux, client)
+    })
+
+    _, ogThema := testutil.CreateThemaHTTP(t, handler, "Test Thema")
+    code, thema := testutil.GetThema(t, handler, testutil.ByID(ogThema.ID))
+
+    if code != http.StatusOK {
+        t.Fatalf("unexpected code for GET: %d", code)
+    }
+    if thema.Title != "Test Thema" {
+        t.Fatalf("Title from GET was not the same as creation title: %s", thema.Title)
+    }
+
+    codeDelete := testutil.DeleteThema(t, handler, testutil.ByTitle(ogThema.Title))
+    if codeDelete != http.StatusNoContent {
+        t.Fatalf("unexpected code for GET, should have 204: %d", codeDelete)
+    }
+
+    codeGet2, _ := testutil.GetThema(t, handler, testutil.ByID(ogThema.ID))
+    if codeGet2 != http.StatusNotFound {
+        t.Fatalf("unexpected code for GET, should have been 405: %d", codeGet2)
+    }
+}
