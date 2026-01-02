@@ -13,29 +13,17 @@ import (
     "yuno-faqman-reciever/internal/httpx"
 )
 
-type TagPayload struct {
-    EnOg string `json:"en_og"`
-    DeTrans string `json:"de_trans"`
-    EsTrans string `json:"es_trans"`
-}
-
-type TagSelector struct {
-    ID       *uuid.UUID
-    EnOg     *string
-    DeTrans *string
-    EsTrans *string
-}
-
-
-func decodeTagPayload(r *http.Request) (TitlePayload, error) {
-    var payload TagPayload
+func decodeTagPayload(r *http.Request) (domain.TagPayload, error) {
+    var payload domain.TagPayload
 
     if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
         return payload, errors.New("invalid json")
     }
+
     if payload.EnOg == "" {
         return payload, errors.New("en_og required")
     }
+
     return payload, nil
 }
 
@@ -52,8 +40,8 @@ func mapWriteResult(w http.ResponseWriter, err error) {
     }
 }
 
-func resolveSelector(r *http.Request) (TagSelector, error) {
-    var payload TagPayload
+func resolveSelector(r *http.Request) (domain.TagSelector, error) {
+    var sel domain.TagSelector
     count := 0
 
     if idStr := r.URL.Query().Get("id"); idStr != "" {

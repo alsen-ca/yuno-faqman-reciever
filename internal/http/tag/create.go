@@ -9,19 +9,18 @@ import (
     "yuno-faqman-reciever/internal/httpx"
 )
 
+// TODO
 func handleCreate(w http.ResponseWriter, r *http.Request, client *mongo.Client) {
     ctx := r.Context()
 
-    // TODO
-    payload, err := helperFunction????(r)
+    payload, err := decodeTagPayload(r)
     if err != nil {
         httpx.WriteError(w, http.StatusBadRequest, err.Error())
         return
     }
 
-    // TODO
-    tag, err := service.CreateTag(ctx, client, payload.???)
-    if err == service.ErrDuplicateTitle {
+    tag, err := service.CreateTag(ctx, client, payload.ToDomain())
+    if err == service.ErrDuplicateTag {
         httpx.WriteError(w, http.StatusConflict, err.Error())
         return
     }

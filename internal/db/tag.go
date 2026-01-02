@@ -2,6 +2,7 @@ package db
 
 import (
     "context"
+    "errors"
 
     "go.mongodb.org/mongo-driver/bson"
     "go.mongodb.org/mongo-driver/mongo"
@@ -10,40 +11,35 @@ import (
     "yuno-faqman-reciever/internal/domain"
 )
 
+type TagUpdate struct {
+    EnOg string
+    DeTrans string
+    EsTrans string
+}
+
 func InsertTag(ctx context.Context, client *mongo.Client, tag domain.Tag) error {
     _, err := TagCollection(client).InsertOne(ctx, tag)
     return err
 }
 
-func FindTagByID(ctx context.Context, client *mongo.Client, id uuid.UUID) (domain.Tag, error) {
-    var tag domain.Tag
-    err := TagCollection(client).
-        FindOne(ctx, bson.M{"_id": id}).
-        Decode(&tag)
-    return tag, err
-}
+func FindTag(ctx context.Context, client *mongo.Client, sel domain.TagSelector) (domain.Tag, error) {
+    col := client.Database(DatabaseName).Collection("tags")
 
-func FindTagByEnOriginal(ctx context.Context, client *mongo.Client, en_og string) (domain.Tag, error) {
-    var tag domain.Tag
-    err := TagCollection(client).
-        FindOne(ctx, bson.M{"en_og": en_og}).
-        Decode(&tag)
-    return tag, err
-}
+    filter := bson.M{}
 
-func FindTagByDeTranslation(ctx context.Context, client *mongo.Client, de_trans string) (domain.Tag, error) {
-    var tag domain.Tag
-    err := TagCollection(client).
-        FindOne(ctx, bson.M{"de_trans": de_trans}).
-        Decode(&tag)
-    return tag, err
-}
+    switch {
+    case sel.ID != nil:
+        filter["_id"] = *sel.ID
+    case sel.EnOg != nil:
+        filter["en_og"] = *sel.EnOg
+    case sel.DeTrans != nil:
+        filter["de_trans"] = *sel.DeTrans
+    case sel.EsTrans != nil:
+        filter["es_trans"] = *sel.EsTrans
+    }
 
-func FindTagByEsTranslation(ctx context.Context, client *mongo.Client, es_trans string) (domain.Tag, error) {
     var tag domain.Tag
-    err := TagCollection(client).
-        FindOne(ctx, bson.M{"es_trans": es_trans}).
-        Decode(&tag)
+    err := col.FindOne(ctx, filter).Decode(&tag)
     return tag, err
 }
 
@@ -59,13 +55,27 @@ func ListTags(ctx context.Context, client *mongo.Client) ([]domain.Tag, error) {
     return tags, err
 }
 
-func UpdateTag(ctx context.Context, client *mongo.Client, id uuid.UUID, en_og string, de_trans string, es_trans string) error {
+func UpdateTag(ctx context.Context, client *mongo.Client, id uuid.UUID, upd TagUpdate) error {
+    set := bson.M{}
+
+    if upd.EnOg != "" {
+        set["en_og"] = upd.EnOg
+    }
+    if upd.DeTrans != "" {
+        set["de_trans"] = upd.DeTrans
+    }
+    if upd.EsTrans != "" {
+        set["es_trans"] = upd.EsTrans
+    }
+
+    if len(set) == 0 {
+        return errors.New("no fields to update")
+    }
+
     res, err := TagCollection(client).UpdateOne(
         ctx,
         bson.M{"_id": id},
-        bson.M{"$set": bson.M{"en_og": en_og}},
-        bson.M{"$set": bson.M{"de_trans": de_trans}},
-        bson.M{"$set": bson.M{"es_trans": es_trans}},
+        bson.M{"$set": set},
     )
     if err != nil {
         return err
@@ -75,6 +85,7 @@ func UpdateTag(ctx context.Context, client *mongo.Client, id uuid.UUID, en_og st
     }
     return nil
 }
+
 
 func DeleteTagByID(ctx context.Context, client *mongo.Client, id uuid.UUID) error {
     res, err := TagCollection(client).
