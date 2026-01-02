@@ -7,6 +7,7 @@ import (
 
 	"yuno-faqman-reciever/internal/db"
 	"yuno-faqman-reciever/internal/http/thema"
+	"yuno-faqman-reciever/internal/http/tag"
 	"yuno-faqman-reciever/internal/middleware"
 )
 
@@ -26,9 +27,10 @@ func main() {
 	log.Println("Indexes to database added successfully")
 
 
-	// Start router
+	// Start routers
 	mux := http.NewServeMux()
 	thema.RegisterRoutes(mux, client)
+	tag.RegisterRoutes(mux, client)
 
 	// Start server
 	handler := middleware.Logging(mux)

@@ -11,6 +11,7 @@ import (
 var (
     DatabaseName   = "faqman"
     themaCollection = "themas"
+    tagCollection = "tags"
 )
 
 func ConnectMongo(uri string) (*mongo.Client, error) {
@@ -33,4 +34,8 @@ func ConnectMongo(uri string) (*mongo.Client, error) {
 
 func ThemaCollection(client *mongo.Client) *mongo.Collection {
     return client.Database(DatabaseName).Collection(themaCollection)
+}
+
+func TagCollection(client *mongo.Client) *mongo.Collection {
+    return client.Database(DatabaseName).Collection(tagCollection)
 }
