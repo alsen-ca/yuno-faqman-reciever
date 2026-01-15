@@ -21,3 +21,22 @@ func EnsureThemaIndexes(ctx context.Context, client *mongo.Client) error {
     _, err := ThemaCollection(client).Indexes().CreateOne(ctx, index)
     return err
 }
+
+func EnsureTagIndexes(ctx context.Context, client *mongo.Client) error {
+    index := []mongo.IndexModel {
+        {
+            Keys:    bson.M{"en_og": 1},
+            Options: options.Index().SetUnique(true).SetName("unique_en_tag"),
+        },
+        {
+            Keys:    bson.M{"de_trans": 1},
+            Options: options.Index().SetUnique(true).SetName("unique_de_tag"),
+        },
+        {
+            Keys:    bson.M{"es_trans": 1},
+            Options: options.Index().SetUnique(true).SetName("unique_es_tag"),
+        },
+    }
+    _, err := TagCollection(client).Indexes().CreateMany(ctx, index)
+    return err
+}

@@ -10,7 +10,8 @@ Replace id={uuid} with the actual uuid, for example:
 
     /thema?id=25bbe563-2a67-4cf3-86b4-e945c41814d7
 
-## Create
+## Themas
+### Create
     curl -X POST http://127.0.0.1:8221/thema \
      -H "Content-Type: application/json" \
      -d '{"title":"go"}'
@@ -19,17 +20,17 @@ Replace id={uuid} with the actual uuid, for example:
      -H "Content-Type: application/json" \
      -d '{"title":"rust"}'
 
-## Get
-### ID / UUID
+### Get
+#### ID / UUID
     curl http://127.0.0.1:8221/thema?id={uuid}
 
-### Title
+#### Title
     curl http://127.0.0.1:8221/thema?title="go"
     
-### All
+#### All
     curl http://127.0.0.1:8221/thema
 
-## Update
+### Update
     curl -X PUT http://127.0.0.1:8221/thema?id={uuid} \
      -H "Content-Type: application/json" \
      -d '{"title": "golang"}'
@@ -38,12 +39,39 @@ Replace id={uuid} with the actual uuid, for example:
      -H "Content-Type: application/json" \
      -d '{"title": "Rust"}'
 
-## Delete
+### Delete
     curl -X DELETE http://127.0.0.1:8221/thema?id={uuid}
 
     curl -X DELETE http://127.0.0.1:8221/thema?title=Rust
 
 
+## Tags
+### Create
+    curl -X POST http://127.0.0.1:8221/tag \
+     -H "Content-Type: application/json" \
+     -d '{"en_og": "Example", "de_trans": "Beispiel", "es_trans": "Ejemplo"}'
+
+### Get
+#### All
+    curl http://127.0.0.1:8221/tags
+
+#### ID / UUID
+    curl http://127.0.0.1:8221/tag?id={uuid}
+
+#### By Language
+
+    curl http://127.0.0.1:8221/tag?en_og=Example
+    curl http://127.0.0.1:8221/tag?de_trans=Beispiel
+    curl http://127.0.0.1:8221/tag?es_trans=Ejemplo
+
+### Delete
+    curl -X DELETE http://127.0.0.1:8221/tag?id={uuid}
+
+### Update
+    curl -X PUT http://127.0.0.1:8221/tag?id={uuid} \
+     -H "Content-Type: application/json" \
+     -d '{"en_og": "New Tag Name", "de_trans": "neuer Tag", "es_trans": "nuevo"}'
+    
 # Images
 Code runs in Docker / Containerd. You can start them with the commands below.
 

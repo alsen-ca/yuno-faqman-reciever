@@ -12,14 +12,17 @@ import (
 func handleDelete(w http.ResponseWriter, r *http.Request, client *mongo.Client) {
     ctx := r.Context()
 
-    // TODO
-    id, err := resolveSelector(r)
+    sel, err := resolveSelector(r)
     if err != nil {
         httpx.WriteError(w, http.StatusBadRequest, err.Error())
         return
     }
 
-    // TODO
-    err = service.DeleteTag(ctx, client, id)
+    if sel.ID == nil {
+        httpx.WriteError(w, http.StatusBadRequest, "id is required")
+        return
+    }
+
+    err = service.DeleteTag(ctx, client, *sel.ID)
     mapWriteResult(w, err)
 }

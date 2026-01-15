@@ -24,6 +24,9 @@ func main() {
 	if err := db.EnsureThemaIndexes(ctx, client); err != nil {
 		log.Fatal(err)
 	}
+	if err := db.EnsureTagIndexes(ctx, client); err != nil {
+		log.Fatal(err)
+	}
 	log.Println("Indexes to database added successfully")
 
 

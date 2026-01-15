@@ -3,7 +3,6 @@ package tag
 import (
     "net/http"
 
-    "github.com/google/uuid"
     "go.mongodb.org/mongo-driver/mongo"
 
     "yuno-faqman-reciever/internal/service"
@@ -13,22 +12,24 @@ import (
 func handleUpdate(w http.ResponseWriter, r *http.Request, client *mongo.Client) {
     ctx := r.Context()
 
-    // TODO
-    id, oldTitle, err := resolveSelector(r)
+    sel, err := resolveSelector(r)
+    if sel.ID == nil {
+        httpx.WriteError(w, http.StatusBadRequest, "id is required")
+        return
+    }
     if err != nil {
         httpx.WriteError(w, http.StatusBadRequest, err.Error())
         return
     }
 
-    payload, err := decodePayload(r)
+    payload, err := decodeTagPayload(r)
     if err != nil {
         httpx.WriteError(w, http.StatusBadRequest, err.Error())
         return
     }
 
-    if id != uuid.Nil {
-        err = service.UpdateTagTitle(ctx, client, id, payload.Title)
-    }
+    err = service.UpdateTag(ctx, client, *sel.ID, payload)
+
 
     mapWriteResult(w, err)
 }

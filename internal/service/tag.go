@@ -62,11 +62,6 @@ func UpdateTag(ctx context.Context, client *mongo.Client, id uuid.UUID, payload 
 }
 
 func DeleteTag(ctx context.Context, client *mongo.Client, id uuid.UUID) error {
-    switch {
-    case id != uuid.Nil:
-        log.Printf("Tag id:%s is being deleted", id)
-        return db.DeleteTagByID(ctx, client, id)
-    default:
-        return errors.New("no selector")
-    }
+    log.Printf("Tag id:%s is being deleted", id)
+    return db.DeleteTagByID(ctx, client, id)
 }

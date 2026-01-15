@@ -40,14 +40,14 @@ func mapWriteResult(w http.ResponseWriter, err error) {
     }
 }
 
-func resolveSelector(r *http.Request) (domain.TagSelector, error) {
+func resolveSelector(r *http.Request) (*domain.TagSelector, error) {
     var sel domain.TagSelector
     count := 0
 
     if idStr := r.URL.Query().Get("id"); idStr != "" {
         id, err := uuid.Parse(idStr)
         if err != nil {
-            return sel, errors.New("invalid uuid")
+            return nil, errors.New("invalid uuid")
         }
         sel.ID = &id
         count++
@@ -69,13 +69,13 @@ func resolveSelector(r *http.Request) (domain.TagSelector, error) {
     }
 
     if count == 0 {
-        return sel, errors.New("missing selector")
+        return nil, nil
     }
     if count > 1 {
-        return sel, errors.New("only one selector allowed")
+        return nil, errors.New("only one selector allowed")
     }
 
-    return sel, nil
+    return &sel, nil
 }
 
 func respondSingle(w http.ResponseWriter, tag domain.Tag, err error) {
