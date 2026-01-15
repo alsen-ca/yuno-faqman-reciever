@@ -19,24 +19,24 @@ type TagSelector struct {
     EsTrans *string
 }
 
-func ByID(id uuid.UUID) TagSelector {
+func TagByID(id uuid.UUID) TagSelector {
     return TagSelector{
         ID: &id,
     }
 }
 
-func ByEn(en_og string) TagSelector {
+func TagByEn(en_og string) TagSelector {
     return TagSelector{
         EnOg: &en_og,
     }
 }
 
-func ByDe(de_trans string) TagSelector {
+func TagByDe(de_trans string) TagSelector {
     return TagSelector{
         DeTrans: &de_trans,
     }
 }
-func ByEs(es_trans string) TagSelector {
+func TagByEs(es_trans string) TagSelector {
     return TagSelector{
         EsTrans: &es_trans,
     }
@@ -60,22 +60,20 @@ func CreateTagHTTP(t *testing.T, handler http.Handler, en_og string, de_trans st
     return rr.Code, tag
 }
 
-func UpdateTag(t *testing.T, handler http.Handler, sel TagSelector, newTitle string) int {
+func UpdateTag(t *testing.T, handler http.Handler, sel TagSelector, payload domain.Tag) int {
     t.Helper()
 
-    var path string
-    switch {
-    case sel.ID != nil:
-        path = "/thema?id=" + sel.ID.String()
-    case sel.Title != nil:
-        path = "/thema?title=" + url.QueryEscape(*sel.Title)
-    default:
-        t.Fatal("selector required")
+    if sel.ID == nil {
+        t.Fatal("UpdateTag requires a selector with ID")
+    }
+    path := "/tag?id=" + sel.ID.String()
+
+    body, err := json.Marshal(payload)
+    if err != nil {
+        t.Fatalf("failed to marshal payload: %v", err)
     }
 
-    body := fmt.Sprintf(`{"title":%q}`, newTitle)
-
-    req := httptest.NewRequest(http.MethodPut, path, strings.NewReader(body))
+    req := httptest.NewRequest(http.MethodPut, path, strings.NewReader(string(body)))
     req.Header.Set("Content-Type", "application/json")
 
     rr := httptest.NewRecorder()
@@ -84,49 +82,44 @@ func UpdateTag(t *testing.T, handler http.Handler, sel TagSelector, newTitle str
     return rr.Code
 }
 
-func DeleteThema(t *testing.T, handler http.Handler, sel ThemaSelector) int {
-    t.Helper()
+func DeleteTag(t *testing.T, handler http.Handler, id uuid.UUID) int {
+	t.Helper()
+	path := "/tag?id=" + url.QueryEscape(id.String())
 
-    var path string
-    switch {
-    case sel.ID != nil:
-        path = "/thema?id=" + sel.ID.String()
-    case sel.Title != nil:
-        path = "/thema?title=" + url.QueryEscape(*sel.Title)
-    default:
-        t.Fatal("selector required")
-    }
+	req := httptest.NewRequest(http.MethodDelete, path, nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
 
-    req := httptest.NewRequest(http.MethodDelete, path, nil)
-    rr := httptest.NewRecorder()
-    handler.ServeHTTP(rr, req)
-
-    return rr.Code
+	return rr.Code
 }
 
-func GetThema(t *testing.T, handler http.Handler, sel ThemaSelector) (int, domain.Thema) {
-    t.Helper()
 
-    var path string
-    switch {
-    case sel.ID != nil:
-        path = "/thema?id=" + sel.ID.String()
-    case sel.Title != nil:
-        path = "/thema?title=" + url.QueryEscape(*sel.Title)
-    default:
-        t.Fatal("selector required")
-    }
+func GetTag(t *testing.T, handler http.Handler, sel TagSelector) (int, domain.Tag) {
+	t.Helper()
 
-    req := httptest.NewRequest(http.MethodGet, path, nil)
-    rr := httptest.NewRecorder()
-    handler.ServeHTTP(rr, req)
+	var path string
+	switch {
+	case sel.ID != nil:
+		path = "/tag?id=" + sel.ID.String()
+	case sel.EnOg != nil:
+		path = "/tag?en_og=" + url.QueryEscape(*sel.EnOg)
+	case sel.DeTrans != nil:
+		path = "/tag?de_trans=" + url.QueryEscape(*sel.DeTrans)
+	case sel.EsTrans != nil:
+		path = "/tag?es_trans=" + url.QueryEscape(*sel.EsTrans)
+	default:
+		t.Fatal("selector required")
+	}
 
-    var thema domain.Thema
-    if rr.Code == http.StatusOK {
-        if err := json.NewDecoder(rr.Body).Decode(&thema); err != nil {
-            t.Fatalf("decode failed: %v", err)
-        }
-    }
+	req := httptest.NewRequest(http.MethodGet, path, nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
 
-    return rr.Code, thema
+	var tg domain.Tag
+	if rr.Code == http.StatusOK {
+		if err := json.NewDecoder(rr.Body).Decode(&tg); err != nil {
+			t.Fatalf("decode failed: %v", err)
+		}
+	}
+	return rr.Code, tg
 }

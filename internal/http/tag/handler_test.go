@@ -5,6 +5,7 @@ import (
     "net/http"
 
     "yuno-faqman-reciever/internal/testutil"
+    "yuno-faqman-reciever/internal/domain"
 )
 
 func TestCreateTag(t *testing.T) {
@@ -13,131 +14,78 @@ func TestCreateTag(t *testing.T) {
         RegisterRoutes(mux, client)
     })
 
-    tagCode, tag := testutil.CreateTagHTTP(t, handler, "my Tag", "mein Tag", "mi Tag")
-    _, tag2 := testutil.CreateTagHTTP(t, handler, "second Tag", "zweites Tag", "segundo Tag")
-
-    if tag.EnOg != "my Tag" {
-        t.Fatalf("unexpected English Original: %s", tag.EnOg)
-    }
-    if tag.DeTrans != "mein Tag" {
-        t.Fatalf("unexpected German Translation: %s", tag.DeTrans)
-    }
-    if tag.EsTrans != "mi Tag" {
-        t.Fatalf("unexpected Spanish Translation: %s", tag.EsTrans)
-    }
-    if tagCode != http.StatusCreated {
-        t.Fatalf("unexpected code for creation: %d", tagCode)
-    }
-    if tag2.EnOg != "second Tag" {
-        t.Fatalf("unexpected English Original: %s", tag.EnOg)
-    }
-    if tag.EnOg == tag2.EnOg {
-        t.Fatalf("Tags have the same title")
-    }
-}
-
-// TODO
-func TestGetTag(t *testing.T) {
-    client, _ := testutil.TestMongoClient(t)
-    handler := testutil.SetupTestServer(func(mux *http.ServeMux) {
-        RegisterRoutes(mux, client)
-    })
-
-    themaCode, themaDomain := testutil.CreateThemaHTTP(t, handler, "Test Thema")
-
-    if themaDomain.Title != "Test Thema" {
-        t.Fatalf("unexpected title: %s", themaDomain.Title)
-    } else if themaCode != http.StatusCreated {
-        t.Fatalf("unexpected code for creation: %d", themaCode)
+    enOg := "Test Tag"
+    deTrans := "Test-Tag"
+    esTrans := "Tag de prueba"
+    code, tagDomain := testutil.CreateTagHTTP(t, handler, enOg, deTrans, esTrans)
+    if code != http.StatusCreated {
+        t.Fatalf("unexpected code for creation: %d", code)
     }
 
-    code, thema := testutil.GetThema(t, handler, testutil.ByID(themaDomain.ID))
-
-    if code != http.StatusOK {
-        t.Fatalf("unexpected code for GET: %d", code)
-    }
-    if thema.Title != themaDomain.Title {
-        t.Fatalf("Title from GET was not the same as creation title: %s", thema.Title)
-    }
-
-    code2, thema2 := testutil.GetThema(t, handler, testutil.ByTitle(themaDomain.Title))
-
-    if code2 != http.StatusOK {
-        t.Fatalf("unexpected code for GETL %d", code2)
-    }
-    if thema2.Title != thema.Title {
-        t.Fatalf("Titles of the same thema do not match: %s", thema2.Title)
-    }
-}
-
-func TestModifyThema(t *testing.T) {
-    client, _ := testutil.TestMongoClient(t)
-    handler := testutil.SetupTestServer(func(mux *http.ServeMux) {
-        RegisterRoutes(mux, client)
-    })
-    _, themaDomain := testutil.CreateThemaHTTP(t, handler, "Test Thema")
-    if themaDomain.Title != "Test Thema" {
-        t.Fatalf("unexpected title: %s", themaDomain.Title)
-    }
-
-    codeGet, themaGet := testutil.GetThema(t, handler, testutil.ByTitle(themaDomain.Title))
+    // Verify the tag was created correctly
+    codeGet, tagGet := testutil.GetTag(t, handler, testutil.TagByID(tagDomain.ID))
     if codeGet != http.StatusOK {
         t.Fatalf("unexpected code for GET: %d", codeGet)
     }
-    if themaGet.Title != "Test Thema" {
-        t.Fatalf("Titles of the same thema do not match: %s", themaGet.Title)
+    if tagGet.EnOg != enOg || tagGet.DeTrans != deTrans || tagGet.EsTrans != esTrans {
+        t.Fatalf("tag fields from GET do not match: %+v", tagGet)
     }
 
-    codeUpdate := testutil.UpdateThema(t, handler, testutil.ByTitle(themaDomain.Title), "Changed Title")
+    updatedTag := domain.Tag{EnOg: "Changed Tag", DeTrans: "Geänderter Tag", EsTrans: "Tag cambiado"}
+    codeUpdate := testutil.UpdateTag(t, handler, testutil.TagByID(tagDomain.ID), updatedTag)
     if codeUpdate != http.StatusNoContent {
-        t.Fatalf("unexpected code for GET, should be 204    : %d", codeUpdate)
+        t.Fatalf("unexpected code for PUT: %d", codeUpdate)
     }
 
-    codeGetNew, _ := testutil.GetThema(t, handler, testutil.ByTitle("Test Thema"))
-    if codeGetNew == http.StatusOK {
-        t.Fatalf("GET request should not have been valid: %d", codeGetNew)
+    // Verify the old tag is no longer accessible by its old fields
+    codeGetOld, _ := testutil.GetTag(t, handler, testutil.TagByEn(enOg))
+    if codeGetOld == http.StatusOK {
+        t.Fatalf("GET request for old EnOg should not have been valid: %d", codeGetOld)
     }
 
-    codeGetNew2, themaGetNew2 := testutil.GetThema(t, handler, testutil.ByID(themaDomain.ID))
+    // By ID
+    codeGetNew, tagGetNew := testutil.GetTag(t, handler, testutil.TagByID(tagDomain.ID))
+    if codeGetNew != http.StatusOK {
+        t.Fatalf("unexpected code for GET: %d", codeGetNew)
+    }
+    if tagGetNew.EnOg != "Changed Tag" || tagGetNew.DeTrans != "Geänderter Tag" || tagGetNew.EsTrans != "Tag cambiado" {
+        t.Fatalf("tag fields from GET do not match updated values: %+v", tagGetNew)
+    }
+
+    codeGetNew2, tagGetNew2 := testutil.GetTag(t, handler, testutil.TagByEn("Changed Tag"))
     if codeGetNew2 != http.StatusOK {
-        t.Fatalf("Unexpected code for GET: %d", codeGetNew2)
+        t.Fatalf("unexpected code for GET: %d", codeGetNew2)
     }
-    if themaGetNew2.Title != "Changed Title" {
-        t.Fatalf("Unexpected title for GET: %s", themaGetNew2.Title)
-    }
-
-    codeGetNew3, themaGetNew3 := testutil.GetThema(t, handler, testutil.ByTitle("Changed Title"))
-    if codeGetNew3 != http.StatusOK {
-        t.Fatalf("Unexpected code for GET: %d", codeGetNew3)
-    }
-    if themaGetNew3.Title != "Changed Title" {
-        t.Fatalf("Unexpected title for GET: %s", themaGetNew3.Title)
+    
+    if tagGetNew2 != tagGetNew {
+        t.Fatalf("tag fields dont match: %+v", tagGetNew2)
     }
 }
 
-func TestDeleteThema(t *testing.T) {
-    client, _ := testutil.TestMongoClient(t)
+
+func TestDeleteTag(t *testing.T) {
+	client, _ := testutil.TestMongoClient(t)
     handler := testutil.SetupTestServer(func(mux *http.ServeMux) {
         RegisterRoutes(mux, client)
     })
 
-    _, ogThema := testutil.CreateThemaHTTP(t, handler, "Test Thema")
-    code, thema := testutil.GetThema(t, handler, testutil.ByID(ogThema.ID))
+	_, tag := testutil.CreateTagHTTP(t, handler, "to-be-deleted", "zu löschen", "para borrar")
 
-    if code != http.StatusOK {
-        t.Fatalf("unexpected code for GET: %d", code)
-    }
-    if thema.Title != "Test Thema" {
-        t.Fatalf("Title from GET was not the same as creation title: %s", thema.Title)
-    }
+	getCode, fetched := testutil.GetTag(t, handler, testutil.TagByID(tag.ID))
+	if getCode != http.StatusOK {
+		t.Fatalf("couldn't fetch newly created tag, got %d", getCode)
+	}
+	if fetched.EnOg != "to-be-deleted" {
+		t.Fatalf("fetched tag does not match created one")
+	}
 
-    codeDelete := testutil.DeleteThema(t, handler, testutil.ByTitle(ogThema.Title))
-    if codeDelete != http.StatusNoContent {
-        t.Fatalf("unexpected code for GET, should have 204: %d", codeDelete)
-    }
+	delCode := testutil.DeleteTag(t, handler, tag.ID)
+	if delCode != http.StatusNoContent {
+		t.Fatalf("expected 204 on delete, got %d", delCode)
+	}
 
-    codeGet2, _ := testutil.GetThema(t, handler, testutil.ByID(ogThema.ID))
-    if codeGet2 != http.StatusNotFound {
-        t.Fatalf("unexpected code for GET, should have been 405: %d", codeGet2)
-    }
+	afterDelCode, _ := testutil.GetTag(t, handler, testutil.TagByID(tag.ID))
+	if afterDelCode != http.StatusNotFound {
+		t.Fatalf("expected 404 after delete, got %d", afterDelCode)
+	}
 }
