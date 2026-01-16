@@ -127,7 +127,7 @@ Replace id={uuid} with the actual uuid, for example:
 
 ### Get
 #### All
-    curl http://127.0.0.1:8221/tags
+    curl http://127.0.0.1:8221/tag
 
 #### ID / UUID
     curl http://127.0.0.1:8221/tag?id={uuid}
@@ -158,4 +158,46 @@ If you have larger datasets and require more efficiency, it might be useful to i
      "question_weights": [{"word": "how", "weight": 1.0},{"word": "to", "weight": 1.0},{"word": "iniate", "weight": 1.0},{"word": "git", "weight": 1.0}],
      "answer": "git init .",
      "lang": "en"}'
-     
+
+    curl -X POST http://127.0.0.1:8221/qa \
+     -H "Content-Type: application/json" \
+     -d '{"question":"How to add file to git?",
+     "question_weights": [{"word": "how", "weight": 1.0},{"word": "to", "weight": 1.0},{"word": "add", "weight": 1.0},{"word": "file", "weight": 1.0},
+        {"word": "to", "weight": 0.1},{"word": "git", "weight": 4.0}],
+     "answer": "git add file",
+     "lang": "en"}'
+    
+    curl -X POST http://127.0.0.1:8221/qa \
+     -H "Content-Type: application/json" \
+     -d '{"question":"How to add every file to git?",
+     "question_weights": [{"word": "how", "weight": 1.0},{"word": "to", "weight": 1.0},
+        {"word": "add", "weight": 1.0},{"word": "every", "weight": 1.0},{"word": "file", "weight": 1.0},
+        {"word": "to", "weight": 0.1},{"word": "git", "weight": 4.0}],
+     "answer": "git add file",
+     "lang": "en"}'
+
+
+### Get
+#### All
+    curl http://127.0.0.1:8221/qa
+
+#### ID / UUID
+    curl http://127.0.0.1:8221/qa?id={uuid}
+
+#### By Question
+(Question must match exactly)
+
+    curl http://127.0.0.1:8221/qa?question=How%20to%20%init%Git%3D
+
+
+#### Update
+    curl "http://127.0.0.1:8221/qa?question=How%20to%20add%20every%20file%20to%20git%3F"
+
+    curl -X PUT http://127.0.0.1:8221/qa?id={uuid} \
+     -H "Content-Type: application/json" \
+     -d '{"question":"How to add every file to git?",
+     "question_weights": [{"word": "how", "weight": 1.0},{"word": "to", "weight": 1.0},
+        {"word": "add", "weight": 1.0},{"word": "every", "weight": 1.0},{"word": "file", "weight": 1.0},
+        {"word": "to", "weight": 0.1},{"word": "git", "weight": 4.0}],
+     "answer": "git add .",
+     "lang": "en"}'

@@ -23,3 +23,8 @@ type QuestionWeight struct {
     Word   string  `json:"word"`
     Weight float64 `json:"weight"`
 }
+
+type QaSelector struct {
+    ID *uuid.UUID
+    Question *string
+}

@@ -4,6 +4,7 @@ import (
     "context"
     "errors"
     "log"
+    "fmt"
 
     "github.com/google/uuid"
     "go.mongodb.org/mongo-driver/mongo"
@@ -36,35 +37,50 @@ func CreateQa(ctx context.Context, client *mongo.Client, in domain.QaPayload) (d
         return domain.Qa{}, err
     }
 
-    log.Printf("Qa created: id=%s Question=%q Questionweights=%q Answer=%q Language: %q", qa.ID, qa.Question, qa.QuestionWeights, qa.Answer, qa.Language)
-
     return qa, nil
-}/*
-
-func GetTag(ctx context.Context, client *mongo.Client, sel domain.TagSelector) (domain.Tag, error) {
-    return db.FindTag(ctx, client, sel)
 }
 
-func ListTags(ctx context.Context, client *mongo.Client) ([]domain.Tag, error) {
-    return db.ListTags(ctx, client)
+func GetQa(ctx context.Context, client *mongo.Client, sel domain.QaSelector) (domain.Qa, error) {
+    return db.FindQa(ctx, client, sel)
 }
 
-func UpdateTag(ctx context.Context, client *mongo.Client, id uuid.UUID, payload domain.TagPayload) error {
-    if payload.EnOg == "" {
-        return errors.New("en_og cannot be empty")
+func ListQas(ctx context.Context, client *mongo.Client) ([]domain.Qa, error) {
+    return db.ListQas(ctx, client)
+}
+
+func UpdateQa(ctx context.Context, client *mongo.Client, id uuid.UUID, payload domain.QaPayload) error {
+    if payload.Question == "" {
+        return errors.New("question cannot be empty")
+    }
+    if len(payload.QuestionWeights) == 0 {
+        return errors.New("question weights cannot be empty")
+    }
+    if payload.Answer == "" {
+        return errors.New("answer cannot be empty")
+    }
+    if payload.Language == "" {
+        return errors.New("language cannot be empty")
     }
 
-    upd := db.TagUpdate{
-        EnOg:     payload.EnOg,
-        DeTrans: payload.DeTrans,
-        EsTrans: payload.EsTrans,
+    upd := db.QaUpdate{
+        Question:       payload.Question,
+        QuestionWeights: payload.QuestionWeights,
+        Answer:         payload.Answer,
+        Language:       payload.Language,
     }
 
-    return db.UpdateTag(ctx, client, id, upd)
+    err := db.UpdateQa(ctx, client, id, upd)
+    if err != nil {
+        if mongo.IsDuplicateKeyError(err) {
+            return ErrDuplicateQa
+        }
+        return fmt.Errorf("failed to update QA: %v", err)
+    }
+
+    return nil
 }
 
-func DeleteTag(ctx context.Context, client *mongo.Client, id uuid.UUID) error {
-    log.Printf("Tag id:%s is being deleted", id)
-    return db.DeleteTagByID(ctx, client, id)
+func DeleteQa(ctx context.Context, client *mongo.Client, id uuid.UUID) error {
+    log.Printf("Qa id:%s is being deleted", id)
+    return db.DeleteQaByID(ctx, client, id)
 }
-*/

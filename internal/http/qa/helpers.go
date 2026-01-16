@@ -4,7 +4,12 @@ import (
     "encoding/json"
     "net/http"
     "fmt"
+    "errors"
+    "log"
+    "github.com/google/uuid"
+    "go.mongodb.org/mongo-driver/mongo"
     "yuno-faqman-reciever/internal/domain"
+    "yuno-faqman-reciever/internal/httpx"
 )
 
 func decodeQaPayload(r *http.Request) (domain.QaPayload, error) {
@@ -29,23 +34,20 @@ func decodeQaPayload(r *http.Request) (domain.QaPayload, error) {
 
 	return payload, nil
 }
-/*
+
 func mapWriteResult(w http.ResponseWriter, err error) {
     switch err {
     case nil:
         w.WriteHeader(http.StatusNoContent)
     case mongo.ErrNoDocuments:
         httpx.WriteError(w, http.StatusNotFound, "not found")
-    case service.ErrDuplicateTitle:
-        httpx.WriteError(w, http.StatusConflict, err.Error())
     default:
         httpx.WriteError(w, http.StatusInternalServerError, "internal error")
     }
 }
 
-func resolveSelector(r *http.Request) (*domain.TagSelector, error) {
-    var sel domain.TagSelector
-    count := 0
+func resolveSelector(r *http.Request) (*domain.QaSelector, error) {
+    var sel domain.QaSelector
 
     if idStr := r.URL.Query().Get("id"); idStr != "" {
         id, err := uuid.Parse(idStr)
@@ -53,35 +55,17 @@ func resolveSelector(r *http.Request) (*domain.TagSelector, error) {
             return nil, errors.New("invalid uuid")
         }
         sel.ID = &id
-        count++
+        return &sel, nil
     }
-
-    if v := r.URL.Query().Get("en_og"); v != "" {
-        sel.EnOg = &v
-        count++
+    if questionStr := r.URL.Query().Get("question"); questionStr != "" {
+        sel.Question = &questionStr
+        return &sel, nil
     }
-
-    if v := r.URL.Query().Get("de_trans"); v != "" {
-        sel.DeTrans = &v
-        count++
-    }
-
-    if v := r.URL.Query().Get("es_trans"); v != "" {
-        sel.EsTrans = &v
-        count++
-    }
-
-    if count == 0 {
-        return nil, nil
-    }
-    if count > 1 {
-        return nil, errors.New("only one selector allowed")
-    }
-
-    return &sel, nil
+    
+    return nil, nil
 }
 
-func respondSingle(w http.ResponseWriter, tag domain.Tag, err error) {
+func respondSingle(w http.ResponseWriter, qa domain.Qa, err error) {
     if err == mongo.ErrNoDocuments {
         httpx.WriteError(w, http.StatusNotFound, "not found")
         return
@@ -90,6 +74,5 @@ func respondSingle(w http.ResponseWriter, tag domain.Tag, err error) {
         httpx.WriteError(w, http.StatusInternalServerError, "internal error")
         return
     }
-    json.NewEncoder(w).Encode(tag)
+    json.NewEncoder(w).Encode(qa)
 }
-*/

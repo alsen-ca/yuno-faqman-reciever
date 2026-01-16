@@ -4,23 +4,33 @@ import (
     "net/http"
 
     "go.mongodb.org/mongo-driver/mongo"
+
     "yuno-faqman-reciever/internal/service"
     "yuno-faqman-reciever/internal/httpx"
-
 )
 
-func handleCreate(w http.ResponseWriter, r *http.Request, client *mongo.Client) {
+func handleUpdate(w http.ResponseWriter, r *http.Request, client *mongo.Client) {
     ctx := r.Context()
 
-    payload, err := decodeQaPayload(r)
-    
+    sel, err := resolveSelector(r)
+    if sel.ID == nil {
+        httpx.WriteError(w, http.StatusBadRequest, "id is required")
+        return
+    }
     if err != nil {
         httpx.WriteError(w, http.StatusBadRequest, err.Error())
         return
     }
-    
 
-    qa, err := service.CreateQa(ctx, client, payload)
+    payload, err := decodeQaPayload(r)
+    if err != nil {
+        httpx.WriteError(w, http.StatusBadRequest, err.Error())
+        return
+    }
+
+    err = service.UpdateQa(ctx, client, *sel.ID, payload)
+
+
     if err == service.ErrDuplicateQa {
         httpx.WriteError(w, http.StatusConflict, err.Error())
         return
@@ -30,5 +40,5 @@ func handleCreate(w http.ResponseWriter, r *http.Request, client *mongo.Client) 
         return
     }
 
-    httpx.WriteJSON(w, http.StatusCreated, qa)
+    mapWriteResult(w, err)
 }
