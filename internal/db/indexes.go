@@ -40,3 +40,17 @@ func EnsureTagIndexes(ctx context.Context, client *mongo.Client) error {
     _, err := TagCollection(client).Indexes().CreateMany(ctx, index)
     return err
 }
+
+func EnsureQaIndexes(ctx context.Context, client *mongo.Client) error {
+    index := mongo.IndexModel{
+        Keys: bson.M{
+            "question": 1,
+        },
+        Options: options.Index().
+            SetUnique(true).
+            SetName("unique_question"),
+    }
+
+    _, err := QaCollection(client).Indexes().CreateOne(ctx, index)
+    return err
+}

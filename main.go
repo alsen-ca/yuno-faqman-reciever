@@ -8,6 +8,7 @@ import (
 	"yuno-faqman-reciever/internal/db"
 	"yuno-faqman-reciever/internal/http/thema"
 	"yuno-faqman-reciever/internal/http/tag"
+	"yuno-faqman-reciever/internal/http/qa"
 	"yuno-faqman-reciever/internal/middleware"
 )
 
@@ -27,6 +28,9 @@ func main() {
 	if err := db.EnsureTagIndexes(ctx, client); err != nil {
 		log.Fatal(err)
 	}
+	if err := db.EnsureQaIndexes(ctx, client); err != nil {
+		log.Fatal(err)
+	}
 	log.Println("Indexes to database added successfully")
 
 
@@ -34,6 +38,7 @@ func main() {
 	mux := http.NewServeMux()
 	thema.RegisterRoutes(mux, client)
 	tag.RegisterRoutes(mux, client)
+	qa.RegisterRoutes(mux, client)
 
 	// Start server
 	handler := middleware.Logging(mux)

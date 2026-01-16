@@ -79,7 +79,7 @@ Or when debugging:
 
 
 
-# HTTP examples
+# Classes
 Replace id={uuid} with the actual uuid, for example:
 
     /thema?id=25bbe563-2a67-4cf3-86b4-e945c41814d7
@@ -146,3 +146,16 @@ Replace id={uuid} with the actual uuid, for example:
      -H "Content-Type: application/json" \
      -d '{"en_og": "New Tag Name", "de_trans": "neuer Tag", "es_trans": "nuevo"}'
     
+
+## QA
+Note that, for simplict's sake, the 'lang' is saved to the database as in, instead of as an enum (int).
+If you have larger datasets and require more efficiency, it might be useful to implement enums here.
+
+### Create
+    curl -X POST http://127.0.0.1:8221/qa \
+     -H "Content-Type: application/json" \
+     -d '{"question":"How to init Git?",
+     "question_weights": [{"word": "how", "weight": 1.0},{"word": "to", "weight": 1.0},{"word": "iniate", "weight": 1.0},{"word": "git", "weight": 1.0}],
+     "answer": "git init .",
+     "lang": "en"}'
+     

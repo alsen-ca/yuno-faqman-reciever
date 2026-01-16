@@ -1,24 +1,28 @@
-package tag
+package qa
 
 import (
     "net/http"
+    "log"
 
     "go.mongodb.org/mongo-driver/mongo"
-
     "yuno-faqman-reciever/internal/service"
     "yuno-faqman-reciever/internal/httpx"
+
 )
 
 func handleCreate(w http.ResponseWriter, r *http.Request, client *mongo.Client) {
     ctx := r.Context()
 
-    payload, err := decodeTagPayload(r)
+    payload, err := decodeQaPayload(r)
+    
     if err != nil {
         httpx.WriteError(w, http.StatusBadRequest, err.Error())
         return
     }
+    log.Printf("Payload: %s", payload)
+    
 
-    tag, err := service.CreateTag(ctx, client, payload.ToDomain())
+    qa, err := service.CreateQa(ctx, client, payload)
     if err == service.ErrDuplicateTag {
         httpx.WriteError(w, http.StatusConflict, err.Error())
         return
@@ -28,5 +32,5 @@ func handleCreate(w http.ResponseWriter, r *http.Request, client *mongo.Client) 
         return
     }
 
-    httpx.WriteJSON(w, http.StatusCreated, tag)
+    httpx.WriteJSON(w, http.StatusCreated, qa)
 }
