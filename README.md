@@ -154,18 +154,22 @@ If you have larger datasets and require more efficiency, it might be useful to i
 ### Create
     curl -X POST http://127.0.0.1:8221/qa \
      -H "Content-Type: application/json" \
-     -d '{"question":"How to init Git?",
-     "question_weights": [{"word": "how", "weight": 1.0},{"word": "to", "weight": 1.0},{"word": "iniate", "weight": 1.0},{"word": "git", "weight": 1.0}],
-     "answer": "git init .",
-     "lang": "en"}'
+     -d '{"question":"How to perform POST?",
+     "question_weights": [{"word": "how", "weight": 1.0},{"word": "to", "weight": 1.0},{"word": "perform", "weight": 1.0},{"word": "post", "weight": 1.0}],
+     "answer": "curl something something",
+     "lang": "en",
+     "thema_id": "f242c924-aaf4-4c94-b4b9-368a7b1b919c",
+     "tag_ids": [{9440a01f-929c-4f66-9edc-70a29606568a}]}'
 
     curl -X POST http://127.0.0.1:8221/qa \
      -H "Content-Type: application/json" \
-     -d '{"question":"How to add file to git?",
-     "question_weights": [{"word": "how", "weight": 1.0},{"word": "to", "weight": 1.0},{"word": "add", "weight": 1.0},{"word": "file", "weight": 1.0},
-        {"word": "to", "weight": 0.1},{"word": "git", "weight": 4.0}],
-     "answer": "git add file",
-     "lang": "en"}'
+     -d '{"question":"What is needed to change?",
+     "question_weights": [{"word": "what", "weight": 1.0},{"word": "is", "weight": 1.0},{"word": "neeeded", "weight": 1.0},{"word": "to", "weight": 1.0},
+        {"word": "change", "weight": 0.1}],
+     "answer": "no idea",
+     "lang": "en",
+     "thema_id": "f242c924-aaf4-4c94-b4b9-368a7b1b919c",
+     "tag_ids": ["9440a01f-929c-4f66-9edc-70a29606568a","6af90e78-ce11-4c5e-8c91-19a4fe3dcb3c"]}'
     
     curl -X POST http://127.0.0.1:8221/qa \
      -H "Content-Type: application/json" \

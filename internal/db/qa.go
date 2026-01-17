@@ -14,6 +14,8 @@ type QaUpdate struct {
     QuestionWeights []domain.QuestionWeight
     Answer string
     Language string
+    ThemaID uuid.UUID
+    TagIDs []uuid.UUID
 }
 
 func InsertQa(ctx context.Context, client *mongo.Client, qa domain.Qa) error {
@@ -60,6 +62,8 @@ func UpdateQa(ctx context.Context, client *mongo.Client, id uuid.UUID, qau QaUpd
         "question_weights": qau.QuestionWeights,
         "answer":           qau.Answer,
         "language":         qau.Language,
+        "thema": qau.ThemaID,
+        "tags": qau.TagIDs,
     }
 
     res, err := QaCollection(client).UpdateOne(

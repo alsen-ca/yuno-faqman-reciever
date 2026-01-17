@@ -12,11 +12,7 @@ import (
 func handleGet(w http.ResponseWriter, r *http.Request, client *mongo.Client) {
     ctx := r.Context()
 
-    selPoE, err := resolveSelector(r)
-    if err != nil {
-        httpx.WriteError(w, http.StatusBadRequest, err.Error())
-        return
-    }
+    selPoE, _ := resolveSelector(r)
 
     if selPoE == nil {
         qas, err := service.ListQas(ctx, client)

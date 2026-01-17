@@ -27,6 +27,8 @@ func CreateQa(ctx context.Context, client *mongo.Client, in domain.QaPayload) (d
         QuestionWeights: in.QuestionWeights,
         Answer: in.Answer,
         Language: in.Language,
+        ThemaID: in.ThemaID,
+        TagIDs: in.TagIDs,
     }
 
     err := db.InsertQa(ctx, client, qa)
@@ -70,6 +72,8 @@ func UpdateQa(ctx context.Context, client *mongo.Client, id uuid.UUID, payload d
         QuestionWeights: payload.QuestionWeights,
         Answer:         payload.Answer,
         Language:       payload.Language,
+        ThemaID: payload.ThemaID,
+        TagIDs: payload.TagIDs,
     }
 
     err := db.UpdateQa(ctx, client, id, upd)
