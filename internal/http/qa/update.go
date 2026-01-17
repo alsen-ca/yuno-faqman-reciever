@@ -13,12 +13,12 @@ func handleUpdate(w http.ResponseWriter, r *http.Request, client *mongo.Client) 
     ctx := r.Context()
 
     sel, err := resolveSelector(r)
-    if sel.ID == nil {
-        httpx.WriteError(w, http.StatusBadRequest, "id is required")
-        return
-    }
     if err != nil {
         httpx.WriteError(w, http.StatusBadRequest, err.Error())
+        return
+    }
+    if sel.ID == nil {
+        httpx.WriteError(w, http.StatusBadRequest, "id is required")
         return
     }
 

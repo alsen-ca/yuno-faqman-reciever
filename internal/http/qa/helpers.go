@@ -5,7 +5,6 @@ import (
     "net/http"
     "fmt"
     "errors"
-    "log"
     "github.com/google/uuid"
     "go.mongodb.org/mongo-driver/mongo"
     "yuno-faqman-reciever/internal/domain"
@@ -62,7 +61,7 @@ func resolveSelector(r *http.Request) (*domain.QaSelector, error) {
         return &sel, nil
     }
     
-    return nil, nil
+    return nil, fmt.Errorf("either 'id' or 'question' must be provided as a query parameter")
 }
 
 func respondSingle(w http.ResponseWriter, qa domain.Qa, err error) {

@@ -49,6 +49,9 @@ func ListQas(ctx context.Context, client *mongo.Client) ([]domain.Qa, error) {
 }
 
 func UpdateQa(ctx context.Context, client *mongo.Client, id uuid.UUID, payload domain.QaPayload) error {
+    if id == uuid.Nil {
+        return errors.New("Id must be sent:")
+    }
     if payload.Question == "" {
         return errors.New("question cannot be empty")
     }

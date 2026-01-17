@@ -8,6 +8,10 @@ import (
     "yuno-faqman-reciever/internal/httpx"
 )
 
+func RegisterRoutes(mux *http.ServeMux, client *mongo.Client) {
+    mux.HandleFunc("/tag", handler(client))
+}
+
 func handler(client *mongo.Client) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
         switch r.Method {
